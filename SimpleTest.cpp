@@ -3,13 +3,48 @@
 #include <cstdio>
 #include <cassert>
 
+void test_0(){
+
+    PMwrite(0 * PAGE_SIZE + 0, 1);
+    PMwrite(1 * PAGE_SIZE + 1, 2);
+    PMwrite(2 * PAGE_SIZE + 1, 3);
+    PMwrite(3 * PAGE_SIZE + 0, 4);
+
+    PMwrite(1 * PAGE_SIZE + 0, 5);
+    PMwrite(5 * PAGE_SIZE + 1, 6);
+    PMwrite(6 * PAGE_SIZE + 1, 7);
+
+    uint64_t result;
+    result = findUnusedFrame();
+    printf("UNUSED FRAME : %d", result);
+}
+
+void test_1(){
+
+    uint64_t test = 0b010100010110;
+    uint64_t result0 = currentOffset(test, 0);
+    uint64_t result1 = currentOffset(test, 1);
+    uint64_t result2 = currentOffset(test, 2);
+    printf("PAGE_BITMASK : %d\r\n", PAGE_BITMASK);
+    printf("RESULT0 : %d\r\n", result0);
+    printf("RESULT1 : %d\r\n", result1);
+    printf("RESULT2 : %d\r\n", result2);
+
+}
+
+void test_2(){
+    VMwrite(13, 3);
+    printRAM();
+    word_t val;
+//    VMread(13, &val);
+//    printf("READ VALUE : %d", val);
+}
+
 int main(int argc, char **argv) {
     VMinitialize();
-
-    searchResult result;
-    result = findUnusedFrame();
-    return result.frameIndex;
+    test_2();
 }
+
 /*
 int main(int argc, char **argv) {
     VMinitialize();

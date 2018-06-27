@@ -28,3 +28,8 @@ void PMrestore(uint64_t frameIndex, uint64_t restoredPageIndex);
  * Raz's test setup
  */
 void setupTest();
+
+/*
+ * Raz's test print
+ */
+void printRAM();

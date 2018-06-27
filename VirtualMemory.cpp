@@ -6,6 +6,7 @@
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define abs(x) ((x) < 0 ? (-1*(x)) : (x))
 
+
 static_assert(TABLES_DEPTH > 1, "Impossible memory layout - table depth 1 is only sufficient \
 to contain the root table");
 
@@ -81,11 +82,22 @@ to contain the root table");
 //    }
 //}
 
-searchResult findUnusedFrame() {
-    return findUnusedFrame(0, ROOT_TABLE_INDEX);
+uint64_t currentOffset(uint64_t virtualAddress, uint64_t currentDepth){
+    return (virtualAddress >> VIRTUAL_ADDRESS_WIDTH - (currentDepth + 1) * OFFSET_WIDTH) &
+           PAGE_BITMASK;
 }
 
-searchResult findUnusedFrame(uint64_t depth, uint64_t frameIndex){
+word_t findUnusedFrame() {
+    searchResult result = findUnusedFrame(0, ROOT_TABLE_INDEX);
+    if (result.isEmpty && result.frameIndex > ROOT_TABLE_INDEX){
+        // Empty frame is unused
+        return result.frameIndex;
+    } else {
+        // Next frame should be unused
+        return result.frameIndex + 1;
+    }
+}
+searchResult findUnusedFrame(uint64_t depth, word_t frameIndex){
     searchResult result{};
     result.frameIndex = frameIndex;
 
@@ -111,6 +123,12 @@ searchResult findUnusedFrame(uint64_t depth, uint64_t frameIndex){
 
             // This was table was not empty after all
             result.isEmpty = false;
+
+            // This table was allocated for a parent? (which called this function to find a
+            // frame for its child)
+            if (nextFrameIndex == TEMP_PARENT_INDEX){
+                continue;
+            }
 
             // It links to another frame (must be non-negative index)
             assert(nextFrameIndex > 0);
@@ -165,18 +183,38 @@ void clearTable(uint64_t frameIndex) {
 }
 
 void VMinitialize() {
-    // TODO: Resume after done testing
     clearTable(0);
-    setupTest();
 }
 
+word_t findLeaf(uint64_t virtualAddress){
+    word_t frameIndex = ROOT_TABLE_INDEX;
+    uint64_t offset;
+    word_t nextIndex;
+
+    // Find and generate page tables on the way
+    for (uint64_t depth = 0; depth < TABLES_DEPTH; depth ++){
+        offset = currentOffset(virtualAddress, depth);
+        PMread(frameIndex * PAGE_SIZE + offset, &nextIndex);
+        if (nextIndex == 0){
+            PMwrite(frameIndex * PAGE_SIZE + offset, TEMP_PARENT_INDEX);
+            nextIndex = findUnusedFrame(); // TODO: Handle evict if frameIndex > maxIndex
+            clearTable(nextIndex);
+            PMwrite(frameIndex * PAGE_SIZE + offset, nextIndex);
+            frameIndex = nextIndex;
+        }
+    }
+
+    // We now have a leaf!
+    return (frameIndex * PAGE_SIZE + offset);
+}
 
 int VMread(uint64_t virtualAddress, word_t* value) {
-    uint64_t physicalAddress;
-    return 1;
+    PMread(findLeaf(virtualAddress), value);
+    return 0;
 }
 
 
 int VMwrite(uint64_t virtualAddress, word_t value) {
+    PMwrite(findLeaf(virtualAddress), value);
     return 1;
 }

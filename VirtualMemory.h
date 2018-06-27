@@ -3,6 +3,8 @@
 #include "MemoryConstants.h"
 
 #define ROOT_TABLE_INDEX 0
+#define TEMP_PARENT_INDEX (-1)
+#define PAGE_BITMASK ((1 << OFFSET_WIDTH) - 1) // 64 because we always work with uint_64t
 
 typedef enum _searchConclusion{
     UNINITIALIZED,
@@ -44,10 +46,18 @@ typedef struct _frameSearchResult{
     frameStatus resultFrames[TABLES_DEPTH];
 } frameSearchResult;
 
+typedef struct _minCyclicInfo{
+    uint64_t distance;
+    uint64_t frameIndex;
+    uint64_t parentIndex;
+} minCyclicInfo;
+
 typedef struct _searchResult{
     bool isEmpty;
-    uint64_t frameIndex; // isEmpty ? emtpyIndex : maxVisitedIndex
+    word_t frameIndex; // isEmpty ? emtpyIndex : maxVisitedIndex
 } searchResult;
+
+uint64_t currentOffset(uint64_t virtualAddress, uint64_t currentDepth);
 
 /*
  * min{NUM_PAGES - |page_swapped_in - p|, |page_swapped_in - p|}
@@ -57,12 +67,8 @@ inline uint64_t cyclicDistance(uint64_t page_swapped_in, uint64_t p);
 /*
  * Return searchResult of traversing the page hierarchy for empty frames
  */
-
-/*
- * Return searchResult of traversing the page hierarchy for empty frames
- */
-searchResult findUnusedFrame();
-searchResult findUnusedFrame(uint64_t depth, uint64_t frameIndex);
+word_t findUnusedFrame();
+searchResult findUnusedFrame(uint64_t depth, word_t frameIndex);
 
 /*
  * Are all the words in this frame = zero?
