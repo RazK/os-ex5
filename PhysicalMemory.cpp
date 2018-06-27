@@ -9,8 +9,21 @@ typedef std::vector<word_t> page_t;
 std::vector<page_t> RAM;
 std::unordered_map<uint64_t, page_t> swapFile;
 
+void setupTest(){
+    // TODO: Remove after done testing
+    PMwrite(0 * PAGE_SIZE + 0, 1);
+    PMwrite(1 * PAGE_SIZE + 1, 2);
+    PMwrite(2 * PAGE_SIZE + 1, 3);
+    PMwrite(3 * PAGE_SIZE + 0, 4);
+
+    PMwrite(1 * PAGE_SIZE + 0, 5);
+    PMwrite(5 * PAGE_SIZE + 1, 6);
+    PMwrite(6 * PAGE_SIZE + 1, 7);
+}
+
 void initialize() {
     RAM.resize(NUM_FRAMES, page_t(PAGE_SIZE));
+    setupTest();
 }
 
 void PMread(uint64_t physicalAddress, word_t* value) {

@@ -1,8 +1,16 @@
 #include "VirtualMemory.h"
-
+#include "PhysicalMemory.h"
 #include <cstdio>
 #include <cassert>
 
+int main(int argc, char **argv) {
+    VMinitialize();
+
+    searchResult result;
+    result = findUnusedFrame();
+    return result.frameIndex;
+}
+/*
 int main(int argc, char **argv) {
     VMinitialize();
     for (uint64_t i = 0; i < (2 * NUM_FRAMES); ++i) {
@@ -20,3 +28,4 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+*/
