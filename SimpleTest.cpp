@@ -20,7 +20,6 @@ void test_0(){
 }
 
 void test_1(){
-
     uint64_t test = 0b010100010110;
     uint64_t result0 = currentOffset(test, 0);
     uint64_t result1 = currentOffset(test, 1);
@@ -29,15 +28,22 @@ void test_1(){
     printf("RESULT0 : %d\r\n", result0);
     printf("RESULT1 : %d\r\n", result1);
     printf("RESULT2 : %d\r\n", result2);
-
 }
 
 void test_2(){
-    VMwrite(13, 3);
+    VMwrite(13, 12345);
     printRAM();
     word_t val;
-//    VMread(13, &val);
-//    printf("READ VALUE : %d", val);
+    VMread(13, &val);
+    printf("READ VALUE : %d", val);
+}
+
+void test_3(){
+    VMwrite(13, 12345);
+    printRAM();
+    word_t val;
+    VMread(13, &val);
+    printf("READ VALUE : %d", val);
 }
 
 int main(int argc, char **argv) {

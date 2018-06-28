@@ -200,8 +200,8 @@ word_t findLeaf(uint64_t virtualAddress){
             nextIndex = findUnusedFrame(); // TODO: Handle evict if frameIndex > maxIndex
             clearTable(nextIndex);
             PMwrite(frameIndex * PAGE_SIZE + offset, nextIndex);
-            frameIndex = nextIndex;
         }
+        frameIndex = nextIndex;
     }
 
     // We now have a leaf!
