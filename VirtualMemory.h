@@ -4,58 +4,36 @@
 
 #define ROOT_TABLE_INDEX 0
 #define TEMP_PARENT_INDEX (-1)
-#define PAGE_BITMASK ((1 << OFFSET_WIDTH) - 1) // 64 because we always work with uint_64t
+#define PAGE_BITMASK ((1 << OFFSET_WIDTH) - 1)
 
-typedef enum _searchConclusion{
-    UNINITIALIZED,
-    MUST_EVICT,
-    FOUND_EMPTY
-} searchConclusion;
+#define min(a,b) ((a) <= (b) ? (a) : (b))
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#define abs(x) ((x) < 0 ? (-1*(x)) : (x))
 
-/*
- * Usage state of a frame
- */
-typedef enum _frameUsage{
-    TABLE,      // Frame is used as a page table
-    USED_FRAME,	// Frame has value or points at another frame (i.e. frame is a table)
-    EMPTY, 	    // Frame = 0
-    ON_HOLD     // We allocated it on the path to another frame and it is still in a fragile, uninitialized state
-} frameUsage;
+void clearTable(uint64_t frameIndex);
 
-/*
- * Usage state
- * If page is used, also contains cyclic distance from page we were trying to access
- */
-typedef struct _frameStatus{
-    // is the frame empty? on hold? used?
-    frameUsage usage;
-
-    // cyclic distance from page we're trying to access:
-    // min{NUM_PAGES - |page_swapped_in - p|, |page_swapped_in - p|}
-    uint64_t cyclicDistance;
-} frameStatus;
-
-typedef struct _frameSearchResult{
-    // All frames are used, must evict?
-    searchConclusion conclusion;
-
-    // Maximal used frame
-    uint64_t maxUsedFrameIndex;
-
-    // Index corresponding to frame number
-    frameStatus resultFrames[TABLES_DEPTH];
-} frameSearchResult;
+inline word_t cyclicDistance(word_t page_swapped_in, word_t p) {
+    return min(NUM_PAGES - abs(page_swapped_in - p), abs(page_swapped_in - p));
+}
 
 typedef struct _minCyclicInfo{
-    uint64_t distance;
-    uint64_t frameIndex;
-    uint64_t parentIndex;
+    word_t frameIndex;
+    word_t parentIndex;
+    word_t targetIndex;
+    uint64_t pageIndex;
+    inline word_t distance(){ return cyclicDistance(frameIndex, targetIndex);};
 } minCyclicInfo;
 
 typedef struct _searchResult{
-    bool isEmpty;
-    word_t frameIndex; // isEmpty ? emtpyIndex : maxVisitedIndex
+    word_t frameIndex;
+    word_t parentIndex;
 } searchResult;
+
+typedef struct _innerSearchResult{
+    bool isEmpty;
+    word_t frameIndex;        // isEmpty ? emtpyIndex : maxVisitedIndex
+    word_t parentIndex;
+} innerSearchResult;
 
 uint64_t currentOffset(uint64_t virtualAddress, uint64_t currentDepth);
 
@@ -65,10 +43,10 @@ uint64_t currentOffset(uint64_t virtualAddress, uint64_t currentDepth);
 inline uint64_t cyclicDistance(uint64_t page_swapped_in, uint64_t p);
 
 /*
- * Return searchResult of traversing the page hierarchy for empty frames
+ * Return innerSearchResult of traversing the page hierarchy for empty frames
  */
-word_t findUnusedFrame();
-searchResult findUnusedFrame(uint64_t depth, word_t frameIndex);
+searchResult findUnusedFrame(word_t targetIndex);
+innerSearchResult findUnusedFrame(uint64_t depth, word_t frameIndex, word_t parentIndex, minCyclicInfo &io_cyclicInfo, uint64_t pathToCurrent);
 
 /*
  * Are all the words in this frame = zero?

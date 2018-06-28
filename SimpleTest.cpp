@@ -14,9 +14,9 @@ void test_0(){
     PMwrite(5 * PAGE_SIZE + 1, 6);
     PMwrite(6 * PAGE_SIZE + 1, 7);
 
-    uint64_t result;
-    result = findUnusedFrame();
-    printf("UNUSED FRAME : %d", result);
+    searchResult result;
+    result = findUnusedFrame(31);
+    printf("UNUSED FRAME : %d", result.frameIndex);
 }
 
 void test_1(){
@@ -40,15 +40,21 @@ void test_2(){
 
 void test_3(){
     VMwrite(13, 12345);
-    printRAM();
+    //printRAM();
     word_t val;
     VMread(13, &val);
+    //printf("READ VALUE : %d", val);
+    PMwrite(15, 6789);
+    VMread(6, &val);
+    //printf("READ VALUE : %d", val);
+    VMread(31, &val);
+    printRAM();
     printf("READ VALUE : %d", val);
 }
 
 int main(int argc, char **argv) {
     VMinitialize();
-    test_2();
+    test_3();
 }
 
 /*
