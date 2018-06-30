@@ -33,3 +33,5 @@ void setupTest();
  * Raz's test print
  */
 void printRAM();
+
+void printSWAP();

@@ -35,6 +35,12 @@ typedef struct _innerSearchResult{
     word_t parentIndex;
 } innerSearchResult;
 
+/**
+ *
+ * @param virtualAddress
+ * @param currentDepth
+ * @return
+ */
 uint64_t currentOffset(uint64_t virtualAddress, uint64_t currentDepth);
 
 /*
@@ -75,5 +81,12 @@ int VMread(uint64_t virtualAddress, word_t* value);
  */
 
 int VMwrite(uint64_t virtualAddress, word_t value);
+
+/**
+ * Logic for finding an empty table (leaf) to use
+ * @param virtualAddress
+ * @return
+ */
+word_t findLeaf(uint64_t virtualAddress);
 
 

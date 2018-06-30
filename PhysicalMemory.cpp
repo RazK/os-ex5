@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <cassert>
 #include <cstdio>
+#include <iostream>
 
 typedef std::vector<word_t> page_t;
 
@@ -39,11 +40,13 @@ void PMevict(uint64_t frameIndex, uint64_t evictedPageIndex) {
     if (RAM.empty())
         initialize();
 
+    // see if this evicted page is still in the swapFile
     assert(swapFile.find(evictedPageIndex) == swapFile.end());
     assert(frameIndex < NUM_FRAMES);
     assert(evictedPageIndex < NUM_PAGES);
 
     swapFile[evictedPageIndex] = RAM[frameIndex];
+
 }
 
 void PMrestore(uint64_t frameIndex, uint64_t restoredPageIndex) {
@@ -55,8 +58,10 @@ void PMrestore(uint64_t frameIndex, uint64_t restoredPageIndex) {
     // page is not in swap file, so this is essentially
     // the first reference to this page. we can just return
     // as it doesn't matter if the page contains garbage
-    if (swapFile.find(restoredPageIndex) == swapFile.end())
+    if (swapFile.find(restoredPageIndex) == swapFile.end()){
         return;
+
+    }
 
     RAM[frameIndex] = std::move(swapFile[restoredPageIndex]);
     swapFile.erase(restoredPageIndex);
@@ -64,7 +69,7 @@ void PMrestore(uint64_t frameIndex, uint64_t restoredPageIndex) {
 
 
 void printRAM(){
-    printf("RAM SIZE : %d\r\n", RAM_SIZE);
+    printf("RAM SIZE : %lld\r\n", RAM_SIZE);
     printf("==============\r\n");
     for (int i = 0; i < NUM_FRAMES; i++){
         printf("--------\r\n");
@@ -74,4 +79,25 @@ void printRAM(){
             printf("RAM[%d][%d]\t= %d\r\n", i, j, RAM[i][j]);
         }
     }
+}
+
+void printSWAP(){
+    printf("SWAP SIZE : %ld\r\n", swapFile.size());
+    printf("==============\r\n");
+    for (int j = 0; j < swapFile.size(); j++){
+        auto i = 0;
+        for (auto val:swapFile[j]){
+            printf ("swapFile[%d][%d] = %d\n", j, i, val);
+            i++;
+        }
+    }
+
+//    for (int i = 0; i < NUM_FRAMES; i++){
+//        printf("--------\r\n");
+//        printf("PAGE %d\r\n", i);
+//        printf("--------\r\n");
+//        for (int j = 0; j < PAGE_SIZE; j++){
+//            printf("RAM[%d][%d]\t= %d\r\n", i, j, RAM[i][j]);
+//        }
+//    }
 }
